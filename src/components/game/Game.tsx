@@ -176,7 +176,7 @@ export default function Game() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0"
-            style={{ background: "var(--canvas-bg)" }}
+            style={{ background: "var(--canvas-bg)", overscrollBehavior: "none" }}
           >
             {/* Infinite canvas */}
             <GameBoard

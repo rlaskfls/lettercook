@@ -317,6 +317,102 @@ export default function GameBoard({
     return () => el.removeEventListener("wheel", handler);
   }, [getViewport, ensureChaseLoop]);
 
+  // ---- Touch: pinch-to-zoom + two-finger pan ----
+
+  const pinchRef = useRef<{
+    startDist: number;
+    startScale: number;
+    startMidX: number;
+    startMidY: number;
+    startOx: number;
+    startOy: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const getTouchDist = (t1: Touch, t2: Touch) =>
+      Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+
+    const getTouchMid = (t1: Touch, t2: Touch) => ({
+      x: (t1.clientX + t2.clientX) / 2,
+      y: (t1.clientY + t2.clientY) / 2,
+    });
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        cancelChaseLoop();
+        dragRef.current = null;
+        setDragVisual(null);
+
+        const d = getTouchDist(e.touches[0]!, e.touches[1]!);
+        const mid = getTouchMid(e.touches[0]!, e.touches[1]!);
+        pinchRef.current = {
+          startDist: d,
+          startScale: scaleRef.current,
+          startMidX: mid.x,
+          startMidY: mid.y,
+          startOx: offsetRef.current.x,
+          startOy: offsetRef.current.y,
+        };
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && pinchRef.current) {
+        e.preventDefault();
+        const d = getTouchDist(e.touches[0]!, e.touches[1]!);
+        const mid = getTouchMid(e.touches[0]!, e.touches[1]!);
+        const { w, h } = getViewport();
+
+        const ratio = d / pinchRef.current.startDist;
+        const newScale = Math.min(
+          MAX_SCALE,
+          Math.max(MIN_SCALE, pinchRef.current.startScale * ratio)
+        );
+
+        const rect = el.getBoundingClientRect();
+        const cx = pinchRef.current.startMidX - rect.left;
+        const cy = pinchRef.current.startMidY - rect.top;
+        const gx = (cx - pinchRef.current.startOx) / pinchRef.current.startScale;
+        const gy = (cy - pinchRef.current.startOy) / pinchRef.current.startScale;
+
+        const panDx = mid.x - pinchRef.current.startMidX;
+        const panDy = mid.y - pinchRef.current.startMidY;
+
+        const newOx = cx - gx * newScale + panDx;
+        const newOy = cy - gy * newScale + panDy;
+
+        const clamped = clampOffset(newOx, newOy, newScale, w, h);
+        targetScaleRef.current = newScale;
+        targetOffsetRef.current = clamped;
+        offsetRef.current = clamped;
+        scaleRef.current = newScale;
+        setOffset(clamped);
+        setScale(newScale);
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) {
+        pinchRef.current = null;
+      }
+    };
+
+    el.addEventListener("touchstart", handleTouchStart, { passive: false });
+    el.addEventListener("touchmove", handleTouchMove, { passive: false });
+    el.addEventListener("touchend", handleTouchEnd);
+    el.addEventListener("touchcancel", handleTouchEnd);
+    return () => {
+      el.removeEventListener("touchstart", handleTouchStart);
+      el.removeEventListener("touchmove", handleTouchMove);
+      el.removeEventListener("touchend", handleTouchEnd);
+      el.removeEventListener("touchcancel", handleTouchEnd);
+    };
+  }, [getViewport, cancelChaseLoop]);
+
   // ---- Coordinate-based tile hit testing ----
 
   const hitTestTile = useCallback(
@@ -518,6 +614,7 @@ export default function GameBoard({
     <div
       ref={containerRef}
       className="absolute inset-0 overflow-hidden cursor-grab active:cursor-grabbing"
+      style={{ touchAction: "none" }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
