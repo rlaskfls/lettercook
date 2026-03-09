@@ -19,6 +19,8 @@ const MONO_FONT = "Inter, ui-monospace, SFMono-Regular, Menlo, Monaco, monospace
 // Heavy-feel physics: all interactions feed into targets, a single chase loop interpolates
 const CHASE_LERP = 0.09;
 const ZOOM_LERP = 0.08;
+const TOUCH_CHASE_LERP = 0.18;
+const TOUCH_ZOOM_LERP = 0.16;
 const SCROLL_DAMPING = 0.45;
 const ZOOM_SENSITIVITY = 0.012;
 const COAST_MULTIPLIER = 10;
@@ -114,6 +116,7 @@ export default function GameBoard({
   const targetScaleRef = useRef(1);
   const chaseLoopRef = useRef<number>(0);
   const chaseVelRef = useRef({ x: 0, y: 0 });
+  const isPinchingRef = useRef(false);
 
   useEffect(() => {
     const c = getComputedStyle(document.documentElement)
@@ -222,8 +225,9 @@ export default function GameBoard({
       const dtRatio = Math.min((now - prevTime) / 16.67, 3);
       prevTime = now;
 
-      const aOff = 1 - Math.pow(1 - CHASE_LERP, dtRatio);
-      const aZoom = 1 - Math.pow(1 - ZOOM_LERP, dtRatio);
+      const pinching = isPinchingRef.current;
+      const aOff = 1 - Math.pow(1 - (pinching ? TOUCH_CHASE_LERP : CHASE_LERP), dtRatio);
+      const aZoom = 1 - Math.pow(1 - (pinching ? TOUCH_ZOOM_LERP : ZOOM_LERP), dtRatio);
 
       const o = offsetRef.current;
       const to = targetOffsetRef.current;
@@ -357,6 +361,7 @@ export default function GameBoard({
         cancelChaseLoop();
         dragRef.current = null;
         setDragVisual(null);
+        isPinchingRef.current = true;
 
         const d = getTouchDist(e.touches[0]!, e.touches[1]!);
         const mid = getTouchMid(e.touches[0]!, e.touches[1]!);
@@ -399,16 +404,14 @@ export default function GameBoard({
         const clamped = clampOffset(newOx, newOy, newScale, w, h);
         targetScaleRef.current = newScale;
         targetOffsetRef.current = clamped;
-        offsetRef.current = clamped;
-        scaleRef.current = newScale;
-        setOffset(clamped);
-        setScale(newScale);
+        ensureChaseLoop();
       }
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
       if (e.touches.length < 2) {
         pinchRef.current = null;
+        isPinchingRef.current = false;
       }
     };
 
@@ -422,7 +425,7 @@ export default function GameBoard({
       el.removeEventListener("touchend", handleTouchEnd);
       el.removeEventListener("touchcancel", handleTouchEnd);
     };
-  }, [getViewport, cancelChaseLoop]);
+  }, [getViewport, cancelChaseLoop, ensureChaseLoop]);
 
   // ---- Coordinate-based tile hit testing ----
 
