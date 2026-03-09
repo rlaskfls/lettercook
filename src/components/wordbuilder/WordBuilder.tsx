@@ -121,7 +121,7 @@ export default function WordBuilder({
       </div>
 
       <div className="text-center">
-        <h2 className="text-lg font-semibold">Spell to Cook</h2>
+        <h2 className="text-lg font-semibold">Your Mise en Place!</h2>
         <p className="text-xs h-fit text-[var(--text-secondary)]">
           Use your collected letters to form food-related words
         </p>
