@@ -267,7 +267,7 @@ export default function Game() {
             exit={{ opacity: 0 }}
             className="flex flex-col items-center gap-6 py-8 px-6 max-w-lg w-full mx-auto"
           >
-            <h2 className="text-xl font-semibold">Game Over</h2>
+            <h2 className="text-xl font-semibold">Enjoy Your Meal</h2>
             <div className="flex flex-col items-center gap-2 bg-white border border-[var(--border-color)] rounded-[var(--radius-lg)] p-6 w-full max-w-sm">
               <span className="text-xs uppercase tracking-wider text-[var(--text-secondary)]">
                 Final Score
