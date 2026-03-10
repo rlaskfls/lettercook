@@ -1,9 +1,10 @@
+// Compressed distribution: E at ~7%, L/S/P/C/D boosted
 const LETTER_WEIGHTS: Record<string, number> = {
-  A: 32, B: 2,  C: 3,  D: 16, E: 36, F: 4,
-  G: 1,  H: 15, I: 25, J: 3,  K: 1,  L: 3,
-  M: 15, N: 22, O: 28, P: 12, Q: 2,  R: 16,
-  S: 8,  T: 25, U: 8,  V: 1,  W: 14, X: 1,
-  Y: 6,  Z: 1,
+  A: 17, B: 10, C: 9,  D: 14, E: 17, F: 5,
+  G: 10, H: 11, I: 13, J: 10, K: 9,  L: 9,
+  M: 11, N: 13, O: 15, P: 12, Q: 9,  R: 11,
+  S: 12, T: 13, U: 8,  V: 9,  W: 10, X: 9,
+  Y: 6,  Z: 9,
 };
 
 const cumulativeWeights: { letter: string; cumWeight: number }[] = [];

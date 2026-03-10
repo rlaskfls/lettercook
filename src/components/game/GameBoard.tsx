@@ -60,21 +60,11 @@ function clampOffset(
   return { x, y };
 }
 
-const PAN_ESCAPE_PX = 18;
-
 interface DragInfo {
   tileRow: number;
   tileCol: number;
   startX: number;
   startY: number;
-}
-
-interface UndecidedTouch {
-  tileRow: number;
-  tileCol: number;
-  startX: number;
-  startY: number;
-  pointerId: number;
 }
 
 export default function GameBoard({
@@ -97,7 +87,6 @@ export default function GameBoard({
   offsetRef.current = offset;
 
   const dragRef = useRef<DragInfo | null>(null);
-  const undecidedRef = useRef<UndecidedTouch | null>(null);
   const [dragVisual, setDragVisual] = useState<{
     row: number;
     col: number;
@@ -356,6 +345,9 @@ export default function GameBoard({
     });
 
     const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        e.preventDefault();
+      }
       if (e.touches.length === 2) {
         e.preventDefault();
         cancelChaseLoop();
@@ -377,6 +369,9 @@ export default function GameBoard({
     };
 
     const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        e.preventDefault();
+      }
       if (e.touches.length === 2 && pinchRef.current) {
         e.preventDefault();
         const d = getTouchDist(e.touches[0]!, e.touches[1]!);
@@ -495,86 +490,25 @@ export default function GameBoard({
       const hit = hitTestTile(e.clientX, e.clientY);
       const isTouch = e.pointerType === "touch";
 
-      if (hit && !isProcessing) {
-        if (isTouch) {
-          undecidedRef.current = {
-            tileRow: hit.row,
-            tileCol: hit.col,
-            startX: e.clientX,
-            startY: e.clientY,
-            pointerId: e.pointerId,
-          };
-        } else {
-          startTileDrag(hit.row, hit.col, e.clientX, e.clientY);
-        }
+      // Tile hit: always treat as tile drag (never pan), even during match animation
+      if (hit) {
+        startTileDrag(hit.row, hit.col, e.clientX, e.clientY);
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         return;
       }
 
+      // Single-finger touch: no panning (reserved for tile interactions)
+      if (isTouch) return;
+
       startPan(e.clientX, e.clientY);
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     },
-    [hitTestTile, isProcessing, cancelChaseLoop, startPan, startTileDrag]
+    [hitTestTile, cancelChaseLoop, startPan, startTileDrag]
   );
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
-      // Touch undecided state: decide between tile swap and pan
-      if (undecidedRef.current) {
-        const u = undecidedRef.current;
-        const screenDx = e.clientX - u.startX;
-        const screenDy = e.clientY - u.startY;
-        const dist = Math.hypot(screenDx, screenDy);
-
-        if (dist < PAN_ESCAPE_PX) return;
-
-        const s = scaleRef.current;
-        const dx = screenDx / s;
-        const dy = screenDy / s;
-        const thresholdX = CELL_W * DRAG_THRESHOLD_RATIO;
-        const thresholdY = CELL_H * DRAG_THRESHOLD_RATIO;
-        const axisRatio = Math.abs(dx) / (Math.abs(dy) + 0.001);
-        const isDirectional = axisRatio > 2.0 || axisRatio < 0.5;
-
-        if (isDirectional) {
-          let targetRow = u.tileRow;
-          let targetCol = u.tileCol;
-          if (Math.abs(dx) > Math.abs(dy)) {
-            if (dx > thresholdX) targetCol++;
-            else if (dx < -thresholdX) targetCol--;
-          } else {
-            if (dy > thresholdY) targetRow++;
-            else if (dy < -thresholdY) targetRow--;
-          }
-
-          const swapped =
-            targetRow !== u.tileRow || targetCol !== u.tileCol;
-          if (
-            swapped &&
-            targetRow >= 0 &&
-            targetRow < GRID_ROWS &&
-            targetCol >= 0 &&
-            targetCol < GRID_COLS
-          ) {
-            undecidedRef.current = null;
-            onSwap(
-              { row: u.tileRow, col: u.tileCol },
-              { row: targetRow, col: targetCol }
-            );
-            return;
-          }
-        }
-
-        undecidedRef.current = null;
-        startPan(u.startX, u.startY);
-        const { w, h } = getViewport();
-        const rawX = panStart.current.ox + screenDx;
-        const rawY = panStart.current.oy + screenDy;
-        targetOffsetRef.current = clampOffset(rawX, rawY, scaleRef.current, w, h);
-        return;
-      }
-
-      // Mouse tile drag
+      // Tile drag (mouse and touch)
       if (dragRef.current && !swappedDuringDrag.current) {
         const s = scaleRef.current;
         const screenDx = e.clientX - dragRef.current.startX;
@@ -640,11 +574,6 @@ export default function GameBoard({
   );
 
   const handlePointerUp = useCallback(() => {
-    if (undecidedRef.current) {
-      undecidedRef.current = null;
-      return;
-    }
-
     if (dragRef.current) {
       if (
         !swappedDuringDrag.current &&

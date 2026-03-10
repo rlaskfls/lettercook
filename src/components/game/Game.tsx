@@ -148,7 +148,7 @@ export default function Game() {
           >
             <div className="text-center">
               <h1 className="text-2xl font-semibold tracking-tight">
-                Letter Cook
+                Word Kitchen
               </h1>
               <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                 Match letters, cook words
@@ -201,7 +201,7 @@ export default function Game() {
                 }}
               >
                 <span className="text-[var(--text-primary)] font-semibold text-sm tracking-tight whitespace-nowrap">
-                  Letter Cook
+                  Word Kitchen
                 </span>
                 <div className="w-px h-6 bg-[var(--border-color)]" />
                 <ScoreDisplay score={state.score} />

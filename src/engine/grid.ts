@@ -33,6 +33,57 @@ export function createGrid(): Grid {
     grid = fixPreExistingMatches(grid);
   }
 
+  // 35% adjacent pairs (2-in-a-row) to make matches easier to find
+  grid = seedAdjacentPairs(grid);
+
+  // Remove any matches accidentally created (e.g. 2x2 from overlapping pairs)
+  if (findMatches(grid).length > 0) {
+    grid = fixPreExistingMatches(grid);
+  }
+
+  return grid;
+}
+
+const ADJACENT_PAIRS_TARGET = 448; // 35% of 2560 tiles
+
+function seedAdjacentPairs(grid: Grid): Grid {
+  let placed = 0;
+
+  for (let attempt = 0; attempt < ADJACENT_PAIRS_TARGET * 4 && placed < ADJACENT_PAIRS_TARGET; attempt++) {
+    const horizontal = Math.random() < 0.5;
+    let r: number, c: number;
+
+    if (horizontal) {
+      r = Math.floor(Math.random() * GRID_ROWS);
+      c = Math.floor(Math.random() * (GRID_COLS - 1));
+    } else {
+      r = Math.floor(Math.random() * (GRID_ROWS - 1));
+      c = Math.floor(Math.random() * GRID_COLS);
+    }
+
+    const letter = getRandomLetter();
+
+    // Ensure placing this pair won't create a 3-in-a-row match
+    if (horizontal) {
+      const left = c > 0 ? grid[r]![c - 1]?.letter : null;
+      const right = c + 2 < GRID_COLS ? grid[r]![c + 2]?.letter : null;
+      if (left === letter || right === letter) continue;
+    } else {
+      const above = r > 0 ? grid[r - 1]![c]?.letter : null;
+      const below = r + 2 < GRID_ROWS ? grid[r + 2]![c]?.letter : null;
+      if (above === letter || below === letter) continue;
+    }
+
+    if (horizontal) {
+      grid[r]![c] = { ...grid[r]![c]!, letter };
+      grid[r]![c + 1] = { ...grid[r]![c + 1]!, letter };
+    } else {
+      grid[r]![c] = { ...grid[r]![c]!, letter };
+      grid[r + 1]![c] = { ...grid[r + 1]![c]!, letter };
+    }
+    placed++;
+  }
+
   return grid;
 }
 
