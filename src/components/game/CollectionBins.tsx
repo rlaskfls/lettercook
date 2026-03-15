@@ -111,7 +111,7 @@ export default function CollectionBins({
         {/* Letter bins */}
         <div className="relative z-10 px-4 py-3 flex items-center justify-center min-h-[56px]">
           {activeBins.length === 0 ? (
-            <div className="absolute inset-0 flex items-center justify-center text-[11px] text-[var(--text-tertiary)]">
+            <div className="absolute inset-0 flex items-center justify-center text-[11px] text-[var(--text-tertiary)]" style={{ marginTop: 7 }}>
               Match letters to collect
             </div>
           ) : (
