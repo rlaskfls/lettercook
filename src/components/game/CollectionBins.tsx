@@ -121,7 +121,7 @@ function SinglePot({
       <div
         className="relative w-full"
         style={{
-          ...(flexHeight ? { minHeight: 56, paddingTop: 8, paddingBottom: 8 } : { height: 80 }),
+          ...(flexHeight ? { minHeight: 80, paddingTop: 8, paddingBottom: 8 } : { height: 80 }),
           background: "#fdfdfd",
           border: `${SW}px solid ${POT_STROKE}`,
           borderRadius: "0 0 22px 22px",
