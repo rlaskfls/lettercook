@@ -25,7 +25,7 @@ interface CollectionBinsProps {
   matchedLetters?: Set<string>;
 }
 
-const SW = 4;
+const SW = 3;
 const POT_STROKE = "#37352f";
 
 type LidDirection = "left" | "center" | "right";
@@ -82,7 +82,7 @@ function SinglePot({
         viewBox="0 0 260 38"
         className="absolute pointer-events-none"
         style={{
-          top: -13,
+          top: -16,
           left: 4,
           right: 4,
           width: "calc(100% - 8px)",
@@ -166,7 +166,7 @@ function SinglePot({
             showPlaceholder ? (
               <div
                 className="absolute inset-0 flex items-center justify-center text-[11px] text-[var(--text-tertiary)]"
-                style={{ marginTop: 7 }}
+                style={{ marginTop: -3 }}
               >
                 Match letters to collect
               </div>
