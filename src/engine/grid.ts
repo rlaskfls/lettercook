@@ -226,7 +226,6 @@ export function fillEmptyWithInfo(grid: Grid): { grid: Grid; fallMap: Map<string
 }
 
 export function shuffleGrid(grid: Grid): Grid {
-  // Collect all letters
   const letters: string[] = [];
   for (let r = 0; r < GRID_ROWS; r++) {
     for (let c = 0; c < GRID_COLS; c++) {
@@ -240,23 +239,60 @@ export function shuffleGrid(grid: Grid): Grid {
     [letters[i], letters[j]] = [letters[j]!, letters[i]!];
   }
 
-  // Rebuild grid
+  // Place letters left-to-right, top-to-bottom, swapping forward when
+  // the current letter would create a match with already-placed neighbors.
+  const placed: string[][] = Array.from({ length: GRID_ROWS }, () =>
+    Array(GRID_COLS).fill("")
+  );
+
+  const wouldMatch = (r: number, c: number, letter: string): boolean => {
+    // Horizontal run of 3
+    if (c >= 2 && placed[r]![c - 1] === letter && placed[r]![c - 2] === letter) return true;
+    // Vertical run of 3
+    if (r >= 2 && placed[r - 1]![c] === letter && placed[r - 2]![c] === letter) return true;
+    // 2x2 square (current tile is bottom-right of a 2x2)
+    if (r >= 1 && c >= 1 &&
+        placed[r]![c - 1] === letter &&
+        placed[r - 1]![c] === letter &&
+        placed[r - 1]![c - 1] === letter) return true;
+    return false;
+  };
+
   let idx = 0;
+  for (let r = 0; r < GRID_ROWS; r++) {
+    for (let c = 0; c < GRID_COLS; c++) {
+      if (!wouldMatch(r, c, letters[idx]!)) {
+        placed[r]![c] = letters[idx]!;
+        idx++;
+      } else {
+        let swapped = false;
+        for (let k = idx + 1; k < letters.length; k++) {
+          if (!wouldMatch(r, c, letters[k]!)) {
+            [letters[idx], letters[k]] = [letters[k]!, letters[idx]!];
+            placed[r]![c] = letters[idx]!;
+            idx++;
+            swapped = true;
+            break;
+          }
+        }
+        if (!swapped) {
+          placed[r]![c] = letters[idx]!;
+          idx++;
+        }
+      }
+    }
+  }
+
   const newGrid: Grid = Array.from({ length: GRID_ROWS }, (_, r) =>
     Array.from({ length: GRID_COLS }, (_, c) => ({
       id: `tile-${++tileCounter}`,
-      letter: letters[idx++]!,
+      letter: placed[r]![c]!,
       row: r,
       col: c,
       isMatched: false,
       isNew: false,
     }))
   );
-
-  // If new grid has matches or no valid moves, try again
-  if (findMatches(newGrid).length > 0 || !hasValidMoves(newGrid)) {
-    return shuffleGrid(grid); // Recursive retry
-  }
 
   return newGrid;
 }

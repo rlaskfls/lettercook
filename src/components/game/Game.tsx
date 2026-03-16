@@ -22,6 +22,8 @@ export default function Game() {
   const [fallingTiles, setFallingTiles] = useState<Map<string, { dist: number; delay: number }>>(new Map());
   const [binPositions, setBinPositions] = useState<Record<string, DOMRect>>({});
   const [showTutorial, setShowTutorial] = useState(false);
+  const [isShuffling, setIsShuffling] = useState(false);
+  const [shufflesLeft, setShufflesLeft] = useState(1);
   const comboRef = useRef(1);
   const processingRef = useRef(false);
 
@@ -135,6 +137,23 @@ export default function Game() {
     [state.phase, state.grid, dispatch, processMatches]
   );
 
+  const handleShuffle = useCallback(() => {
+    if (state.phase !== "matching" || processingRef.current || isShuffling || shufflesLeft <= 0) return;
+    setIsShuffling(true);
+    setShufflesLeft((n) => n - 1);
+    const shuffled = shuffleGrid(state.grid);
+    dispatch({ type: "SET_GRID", grid: shuffled });
+
+    const matches = findMatches(shuffled);
+    if (matches.length > 0) {
+      processingRef.current = true;
+      dispatch({ type: "SET_PROCESSING", value: true });
+      processMatches(shuffled, 1);
+    }
+
+    setTimeout(() => setIsShuffling(false), 600);
+  }, [state.phase, state.grid, dispatch, isShuffling, shufflesLeft, processMatches]);
+
   const letterCount = Object.values(state.collectedLetters).reduce(
     (a, b) => a + b,
     0
@@ -227,6 +246,66 @@ export default function Game() {
               </div>
             </div>
 
+            {/* Shuffle button — aligned vertically with nav bar */}
+            <motion.button
+              onPointerDown={(e) => {
+                e.stopPropagation();
+                handleShuffle();
+              }}
+              onPointerUp={(e) => e.stopPropagation()}
+              onPointerMove={(e) => e.stopPropagation()}
+              disabled={shufflesLeft <= 0}
+              className="fixed z-[60] w-10 h-10 rounded-full border flex items-center justify-center shadow-sm"
+              style={{
+                top: 20,
+                right: 20,
+                pointerEvents: "auto",
+                cursor: shufflesLeft > 0 ? "pointer" : "default",
+                opacity: shufflesLeft > 0 ? 1 : 0.35,
+                background: "var(--header-bg)",
+                borderColor: "var(--header-border)",
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
+              }}
+              animate={
+                isShuffling
+                  ? { scale: [1, 0.85, 1.1, 1], rotate: [0, 360] }
+                  : { scale: 1, rotate: 0 }
+              }
+              transition={
+                isShuffling
+                  ? { duration: 0.5, ease: "easeInOut" }
+                  : { duration: 0.2 }
+              }
+              whileHover={shufflesLeft > 0 ? { scale: 1.08 } : {}}
+              whileTap={shufflesLeft > 0 ? { scale: 0.92 } : {}}
+              title={shufflesLeft > 0 ? "Shuffle board" : "No shuffles left"}
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 7.5 A7 7 0 0 1 13.5 3.5" />
+                <path d="M13.5 1 L13.5 4 L10.5 4" />
+                <path d="M17 10.5 A7 7 0 0 1 4.5 14.5" />
+                <path d="M4.5 17 L4.5 14 L7.5 14" />
+              </svg>
+              {shufflesLeft > 0 && (
+                <span
+                  className="absolute flex items-center justify-center rounded-full font-bold"
+                  style={{
+                    top: -4,
+                    right: -4,
+                    width: 16,
+                    height: 16,
+                    fontSize: 10,
+                    lineHeight: 1,
+                    color: "#fff",
+                    background: "var(--text-primary)",
+                  }}
+                >
+                  {shufflesLeft}
+                </span>
+              )}
+            </motion.button>
+
             {/* Floating bottom bins - cooking pot */}
             <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50">
               <CollectionBins
@@ -303,6 +382,7 @@ export default function Game() {
               onClick={() => {
                 setMatchedPositions(new Set());
                 setMatchedLetters(new Set());
+                setShufflesLeft(1);
                 comboRef.current = 1;
                 processingRef.current = false;
                 dispatch({ type: "RESET_GAME" });
