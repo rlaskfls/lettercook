@@ -46,6 +46,7 @@ interface SinglePotProps {
   isCollecting: boolean;
   showPlaceholder: boolean;
   lidDir: LidDirection;
+  flexHeight?: boolean;
 }
 
 function SinglePot({
@@ -56,6 +57,7 @@ function SinglePot({
   isCollecting,
   showPlaceholder,
   lidDir,
+  flexHeight = false,
 }: SinglePotProps) {
   const activeBins = letters.filter((l) => (collected[l] || 0) > 0);
 
@@ -74,13 +76,13 @@ function SinglePot({
       : { rotate: isCollecting ? -16 : 0, scaleX: 1 };
 
   return (
-    <div className="relative" style={{ padding: "26px 18px 0", width: "300px" }}>
+    <div className="relative" style={{ padding: "26px 18px 0", width: "344px" }}>
       {/* Lid */}
       <motion.svg
         viewBox="0 0 260 38"
         className="absolute pointer-events-none"
         style={{
-          top: -3,
+          top: -13,
           left: 4,
           right: 4,
           width: "calc(100% - 8px)",
@@ -117,7 +119,7 @@ function SinglePot({
       <div
         className="relative w-full"
         style={{
-          height: 80,
+          ...(flexHeight ? { minHeight: 56, paddingTop: 8, paddingBottom: 8 } : { height: 80 }),
           background: "#fdfdfd",
           border: `${SW}px solid ${POT_STROKE}`,
           borderRadius: "0 0 22px 22px",
@@ -207,7 +209,8 @@ export default function CollectionBins({
           onMeasureBin={onMeasureBin}
           isCollecting={isCollecting}
           showPlaceholder={true}
-          lidDir="left"
+          lidDir="center"
+          flexHeight
         />
       </div>
     );
