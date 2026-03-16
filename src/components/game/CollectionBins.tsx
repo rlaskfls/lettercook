@@ -1,6 +1,22 @@
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import type { LetterCollection } from "@/types/game";
 import Bin from "./Bin";
+
+const MOBILE_BREAKPOINT = 640;
+
+function useIsMobile() {
+  const [mobile, setMobile] = useState(
+    () => typeof window !== "undefined" && window.innerWidth < MOBILE_BREAKPOINT
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+    const handler = (e: MediaQueryListEvent) => setMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return mobile;
+}
 
 interface CollectionBinsProps {
   collected: LetterCollection;
@@ -13,6 +29,8 @@ const SW = 4;
 const POT_STROKE = "#37352f";
 
 type LidDirection = "left" | "center" | "right";
+
+const ALL_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 const POT_RANGES: { letters: string[]; showPlaceholder: boolean; lidDir: LidDirection }[] = [
   { letters: "ABCDEFGHI".split(""), showPlaceholder: false, lidDir: "left" },
@@ -176,6 +194,25 @@ export default function CollectionBins({
   onMeasureBin,
   matchedLetters = new Set(),
 }: CollectionBinsProps) {
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    const isCollecting = ALL_LETTERS.some((l) => matchedLetters.has(l));
+    return (
+      <div className="flex items-end justify-center">
+        <SinglePot
+          letters={ALL_LETTERS}
+          collected={collected}
+          dark={dark}
+          onMeasureBin={onMeasureBin}
+          isCollecting={isCollecting}
+          showPlaceholder={true}
+          lidDir="left"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-end gap-1">
       {POT_RANGES.map((range, i) => {

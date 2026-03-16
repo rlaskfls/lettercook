@@ -219,7 +219,7 @@ export default function Game() {
             {/* Floating header */}
             <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2">
               <div
-                className="flex items-center gap-5 px-6 py-3 rounded-2xl border shadow-sm"
+                className="flex items-center gap-2 px-3 sm:gap-5 sm:px-6 py-3 rounded-2xl border shadow-sm"
                 style={{
                   background: "var(--header-bg)",
                   borderColor: "var(--header-border)",
@@ -227,7 +227,7 @@ export default function Game() {
                   WebkitBackdropFilter: "blur(20px)",
                 }}
               >
-                <span className="text-[var(--text-primary)] font-semibold text-sm tracking-tight whitespace-nowrap">
+                <span className="text-[var(--text-primary)] font-semibold text-xs sm:text-sm tracking-tight whitespace-nowrap">
                   Word Kitchen
                 </span>
                 <div className="w-px h-6 bg-[var(--border-color)]" />
