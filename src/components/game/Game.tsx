@@ -159,6 +159,8 @@ export default function Game() {
     0
   );
 
+  const canShuffle = shufflesLeft > 0 && !state.isProcessing;
+
   return (
     <>
       <AnimatePresence mode="wait">
@@ -248,12 +250,12 @@ export default function Game() {
                 onPointerDown={(e) => { e.stopPropagation(); handleShuffle(); }}
                 onPointerUp={(e) => e.stopPropagation()}
                 onPointerMove={(e) => e.stopPropagation()}
-                disabled={shufflesLeft <= 0}
+                disabled={!canShuffle}
                 className="relative flex-shrink-0 w-10 h-10 rounded-full border flex items-center justify-center shadow-sm"
                 style={{
-                  pointerEvents: "auto",
-                  cursor: shufflesLeft > 0 ? "pointer" : "default",
-                  opacity: shufflesLeft > 0 ? 1 : 0.35,
+                  pointerEvents: canShuffle ? "auto" : "none",
+                  cursor: canShuffle ? "pointer" : "default",
+                  opacity: canShuffle ? 1 : 0.35,
                   background: "var(--header-bg)",
                   borderColor: "var(--header-border)",
                   backdropFilter: "blur(20px)",
@@ -261,9 +263,9 @@ export default function Game() {
                 }}
                 animate={isShuffling ? { scale: [1, 0.85, 1.1, 1], rotate: [0, 360] } : { scale: 1, rotate: 0 }}
                 transition={isShuffling ? { duration: 0.5, ease: "easeInOut" } : { duration: 0.2 }}
-                whileHover={shufflesLeft > 0 ? { scale: 1.08 } : {}}
-                whileTap={shufflesLeft > 0 ? { scale: 0.92 } : {}}
-                title={shufflesLeft > 0 ? "Shuffle board" : "No shuffles left"}
+                whileHover={canShuffle ? { scale: 1.08 } : {}}
+                whileTap={canShuffle ? { scale: 0.92 } : {}}
+                title={canShuffle ? "Shuffle board" : state.isProcessing ? "Wait for matches to finish" : "No shuffles left"}
               >
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M1 7.5 A7 7 0 0 1 13.5 3.5" />
@@ -314,14 +316,14 @@ export default function Game() {
               onPointerDown={(e) => { e.stopPropagation(); handleShuffle(); }}
               onPointerUp={(e) => e.stopPropagation()}
               onPointerMove={(e) => e.stopPropagation()}
-              disabled={shufflesLeft <= 0}
+              disabled={!canShuffle}
               className="hidden sm:flex fixed z-[60] w-10 h-10 rounded-full border items-center justify-center shadow-sm"
               style={{
                 top: 20,
                 right: 20,
-                pointerEvents: "auto",
-                cursor: shufflesLeft > 0 ? "pointer" : "default",
-                opacity: shufflesLeft > 0 ? 1 : 0.35,
+                pointerEvents: canShuffle ? "auto" : "none",
+                cursor: canShuffle ? "pointer" : "default",
+                opacity: canShuffle ? 1 : 0.35,
                 background: "var(--header-bg)",
                 borderColor: "var(--header-border)",
                 backdropFilter: "blur(20px)",
@@ -329,9 +331,9 @@ export default function Game() {
               }}
               animate={isShuffling ? { scale: [1, 0.85, 1.1, 1], rotate: [0, 360] } : { scale: 1, rotate: 0 }}
               transition={isShuffling ? { duration: 0.5, ease: "easeInOut" } : { duration: 0.2 }}
-              whileHover={shufflesLeft > 0 ? { scale: 1.08 } : {}}
-              whileTap={shufflesLeft > 0 ? { scale: 0.92 } : {}}
-              title={shufflesLeft > 0 ? "Shuffle board" : "No shuffles left"}
+              whileHover={canShuffle ? { scale: 1.08 } : {}}
+              whileTap={canShuffle ? { scale: 0.92 } : {}}
+              title={canShuffle ? "Shuffle board" : state.isProcessing ? "Wait for matches to finish" : "No shuffles left"}
             >
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M1 7.5 A7 7 0 0 1 13.5 3.5" />

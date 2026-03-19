@@ -33,9 +33,9 @@ type LidDirection = "left" | "center" | "right";
 const ALL_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 const POT_RANGES: { letters: string[]; showPlaceholder: boolean; lidDir: LidDirection }[] = [
-  { letters: "ABCDEFGHI".split(""), showPlaceholder: false, lidDir: "left" },
-  { letters: "JKLMNOPQR".split(""), showPlaceholder: true, lidDir: "center" },
-  { letters: "STUVWXYZ".split(""), showPlaceholder: false, lidDir: "right" },
+  { letters: "NRTLSDCMPB".split(""), showPlaceholder: false, lidDir: "left" },
+  { letters: "AEIOU".split(""), showPlaceholder: true, lidDir: "center" },
+  { letters: "FGHWYVKXJQZ".split(""), showPlaceholder: false, lidDir: "right" },
 ];
 
 interface SinglePotProps {
